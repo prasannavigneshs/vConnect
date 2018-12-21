@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Time Table</title>
+    <link rel = "stylesheet" href = "{{url_for('static',filename='css/bootstrap.min.css')}}">
+    <link rel = "stylesheet" href = "{{url_for('static',filename='css/main.css')}}">
+    <link rel = "stylesheet" href = "{{url_for('static',filename='css/font-awesome.min.css')}}">
+    <link rel="shortcut icon" href="#">
+
+    <style>
+    table.table {
+      width: 80%;
+      font-size: 14px;
+    }
+    </style>
+    </head>
+
+    <body onload="loadValueFromDb( '{{ id }}' )">
+        <nav class="navbar navbar-dark bg-dark justify-content-center">
+            <a class="nav-link brand" href="#">vConnect</a>
+        </nav>
+        <div class="container">
+            <div id="subjects">
+
+            </div>
+            <hr>
+            <div class="tab-content">
+                <div id="home" class="">
+                    <center>
+                        <h3>TIMETABLE</h3>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr class="table-head">
+                                    <th class="col-md-1"></th>
+                                    <th class="col-md-1">8:40AM-9:30AM</th>
+                                    <th class="col-md-1">9:30AM-10:20AM</th>
+                                    <th class="col-md-1">10:30AM-11:20AM</th>
+                                    <th class="col-md-1">11:20AM-12:10PM</th>
+                                    <th class="col-md-1">12:50PM-1:35PM</th>
+                                    <th class="col-md-1">1:35PM-2:20PM</th>
+                                    <th class="col-md-1">2:30PM-3:10PM</th>
+                                    <th class="col-md-1">3:10PM-4:00PM</th>
+                                </tr>
+                                <tr class="table-head">
+                                    <th class="col-md-1">Day</th>
+                                    <th class="col-md-1">1</th>
+                                    <th class="col-md-1">2</th>
+                                    <th class="col-md-1">3</th>
+                                    <th class="col-md-1">4</th>
+                                    <th class="col-md-1">5</th>
+                                    <th class="col-md-1">6</th>
+                                    <th class="col-md-1">7</th>
+                                    <th class="col-md-1">8</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rows">
+
+                            </tbody>
+                        </table>
+                    </center>
+                </div>
+            </div>
+        </div>
+        <script src = "{{url_for('static',filename='js/script.js')}}"></script>
+        <script src = "{{url_for('static', filename = 'js/jquery-3.2.1.slim.min.js')}}"></script>
+        <script src = "{{url_for('static', filename = 'js/bootstrap.min.js')}}"></script>
+
+    </body>
+</html>
