@@ -44,9 +44,16 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label for="file">Upload File:</label>
-                                        <input type="file" class="form-control col-xl-5" name ="file" id="file">
-                                        <div class="" id="feedback" style="display: none">
+                                        <label for="staff_timetable">Upload staffs timetable:</label>
+                                        <input type="file" class="form-control col-xl-5" name ="staff_timetable" id="staff_timetable">
+                                        <div class="" id="feedback_staff" style="display: none">
+                                            Please upload a valid file.
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="class_timetable">Upload class timetable:</label>
+                                        <input type="file" class="form-control col-xl-5" name ="class_timetable" id="class_timetable">
+                                        <div class="" id="feedback_class" style="display: none">
                                             Please upload a valid file.
                                         </div>
                                     </div>
@@ -62,6 +69,12 @@
                 </div>
             </div>
         </div>
+
+        <div id="uploading" class="modal modal-extra">
+            <img src="{{url_for('static',filename='uploads/loading.gif')}}" class="modal-content modal-content-extra">
+            <div class="caption">Uploading</div>
+        </div>
+
         <footer>
             <div class="footer">
                 <div class="col-md-12 col-md-offset-1 text-center">
@@ -69,6 +82,7 @@
                 </div>
             </div>
         </footer>
+
         <script src = "{{url_for('static',filename='js/script.js')}}"></script>
         <script src = "{{url_for('static', filename = 'js/jquery.min.js')}}"></script>
         <script src = "{{url_for('static', filename = 'js/bootstrap.min.js')}}"></script>

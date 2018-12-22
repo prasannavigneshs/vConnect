@@ -15,12 +15,12 @@
     </style>
     </head>
 
-    <body onload="loadStaffTimetable( '{{ id }}' )">
+    <body onload="loadClassTimetable( '{{ id }}' )">
         <nav class="navbar navbar-dark bg-dark justify-content-center">
             <a class="nav-link brand" href="#">vConnect</a>
         </nav>
         <div class="container">
-            <div id="subjects">
+            <div id="details">
 
             </div>
             <hr>
@@ -59,6 +59,10 @@
                         </table>
                     </center>
                 </div>
+            </div>
+            <hr>
+            <div id="subject_details">
+
             </div>
         </div>
         <script src = "{{url_for('static',filename='js/script.js')}}"></script>
