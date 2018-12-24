@@ -1,4 +1,4 @@
-var flag = true;
+var flag = true, element, fields, day, text;
 
 function validateFileExtension() {
     var filename = document.getElementById('staff_timetable').value;
@@ -8,7 +8,7 @@ function validateFileExtension() {
 
         filename = document.getElementById('class_timetable').value;
         extension = filename.substring(filename.lastIndexOf('.') + 1);
-
+        
         if(extension === "xls" || extension === "xlsx") {
             document.getElementById('uploading').style.display = "block";
             return true;
@@ -26,7 +26,7 @@ function validateFileExtension() {
         element.color = "red";
         return false;
     }
-    return false;
+    
 }
 
 
@@ -36,9 +36,9 @@ function invoke() {
 
 function getFields(value) {
     var request = new XMLHttpRequest();
-    var doc = "", datalist = "";
-    if(value == undefined) {
-        if(document.getElementById('after').style.display == "") {
+    var doc = "", dataList;
+    if(value === undefined) {
+        if(document.getElementById('after').style.display === "") {
             doc = document.getElementById('search_query').value;
             dataList = document.getElementById('data_list');
             dataList.innerHTML ="";
@@ -52,15 +52,15 @@ function getFields(value) {
         }
     }
     else {
-        doc = parseInt(value);
+        doc = value;
         dataList = document.getElementById('data_list');
         dataList.innerHTML ="";
     }
     var data = {};
-    fields = ["department_search","subject_search","free_period","class_search"]
+    fields = ["department_search","subject_search","free_period","class_search","staff_search"];
     data["type"]=fields[parseInt(doc)];
 
-    request.onreadystatechange = function(response) {
+    request.onreadystatechange = function() {
       if (request.readyState === 4) {
         if (request.status === 200) {
           var jsonOptions = JSON.parse(request.responseText);
@@ -99,10 +99,10 @@ function getResults(field1, field2) {
         }
     }
     var data = {};
-    fields = ["department", "subject", "class", "sections"]
+    fields = ["department", "subject", "class", "sections", "staff"];
     data["type"]=fields[parseInt(doc)];
     if(data["type"] === "class") {
-        if(field1 == undefined) {
+        if(field1 === undefined) {
             document.getElementById('trigger').click();
             return;
         }
@@ -111,14 +111,14 @@ function getResults(field1, field2) {
     } else {
         data["value"] = val;
     }
-    request.onreadystatechange = function(response) {
+    request.onreadystatechange = function() {
       if (request.readyState === 4) {
         if (request.status === 200) {
           var jsonOptions = JSON.parse(request.responseText);
           document.getElementById('before').style.display = "none";
           document.getElementById('after').style.display = "";
           if(!flag) {
-                document.getElementById('search_query').value =document.getElementById('search_query').value;
+                document.getElementById('search_query').value = document.getElementById('search_query').value;
                 document.getElementById('search_bar').value = document.getElementById('search_bar').value;
           } else {
                 flag = false;
@@ -141,7 +141,7 @@ function getResults(field1, field2) {
 function fillProfiles(data, type) {
     var text = "";
     if(type !== "sections") {
-        for(var i = 0; i < data.length; i ++ ) {
+        for(i = 0; i < data.length; i ++ ) {
             text += '<div class="staff-detail col-xd-3 col-sm-3 col-md-3">' +
             '<center>'+
                 '<a href="/timetable/' + data[i]['id'] + '" target="_blank">'+
@@ -152,7 +152,7 @@ function fillProfiles(data, type) {
                 '<div class="details">'+
                     '<h5> <p class="name">' +  data[i]['name'] + '</p></h5>'+
                     '<p class="designation">' + data[i]['designation'] + '</p>'+
-                    '<a href="/timetable/' + data[i]['id'] + '" type="button" class="btn btn-info" target="_blank">View Timetable</button>'+
+                    '<button class="btn btn-primary" onclick=" window.open(\'/timetable/' + data[i]['id'] + '\',\'_blank\')"> View TimeTable</button>' +
                 '</div>'+
             '</center>'+
         '</div>';
@@ -180,11 +180,11 @@ function fillProfiles(data, type) {
 function loadStaffTimetable(id) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
-        if(this.readyState ===4 && this.status === 200) {
+        if(this.readyState === 4 && this.status === 200) {
             var json = JSON.parse(this.responseText);
             var result = JSON.parse(json['value']['timetable'][0]);
-            subjects = json['value']['subjects'];
-            subject = '<center><table class="table" style="margin-top:3%;width:40%"> <tr><th class="col-md-1"> Name of the faculty </th> <th class="col-md-1">' + json['value']['name'][0][0] + '</th></tr>' ;
+            var subjects = json['value']['subjects'];
+            var subject = '<center><table class="table" style="margin-top:3%;width:40%"> <tr><th class="col-md-1"> Name of the faculty </th> <th class="col-md-1">' + json['value']['name'][0][0] + '</th></tr>' ;
 
             for(var k = 0; k < subjects.length; k++) {
                 subject += '<tr><td class="col-md-1">' + subjects[k][0] + '</td>';
@@ -193,7 +193,7 @@ function loadStaffTimetable(id) {
             subject += '</table></center>';
             document.getElementById('subjects').innerHTML = subject;
 
-            day = ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY"]
+            day = ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY"];
             text = "<table border='2'>";
             for(var i = 0 ;i < 5; i++)
             {
@@ -202,7 +202,7 @@ function loadStaffTimetable(id) {
                 for(var j= 0 ; j < 8; j++) {
                         if(result[i][j]==="")
                             text+='<td>     </td>';
-                        else if ((j%2 == 0) && result[i][j] === result[i][j + 1]) {
+                        else if ((j%2 === 0) && result[i][j] === result[i][j + 1]) {
                             text+='<td colspan="2" align="center">'+result[i][j]+'</td>';
                              j++;
                         }
@@ -234,8 +234,7 @@ function loadClassTimetable(id) {
             var json = JSON.parse(this.responseText);
             console.log(JSON.parse(json['value']['subject_details']));
             var result = JSON.parse(json['value']['timetable']);
-            details = json['value']['details'];
-            detail = '<center>' +
+            var detail = '<center>' +
                         '<table class="table" style="margin-top:3%;width:40%">' +
                             '<tr>' +
                                 '<th class="col-md-1" style="width:50%" > Class </th>' +
@@ -249,7 +248,7 @@ function loadClassTimetable(id) {
                       '</center>';
             document.getElementById('details').innerHTML = detail;
 
-            day = ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY"]
+            day = ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY"];
             text = "<table border='2'>";
             for(var i = 0 ;i < 5; i++)
             {
@@ -258,7 +257,7 @@ function loadClassTimetable(id) {
                 for(var j= 0 ; j < 8; j++) {
                         if(result[i][j]==="")
                             text+='<td>     </td>';
-                        else if ((j%2 == 0) && result[i][j] === result[i][j + 1]) {
+                        else if ((j%2 === 0) && result[i][j] === result[i][j + 1]) {
                             text+='<td colspan="2" align="center">'+result[i][j]+'</td>';
                              j++;
                         }
@@ -271,15 +270,15 @@ function loadClassTimetable(id) {
             text+='</table>';
             document.getElementById('rows').innerHTML = text;
 
-            subject_details = JSON.parse(json['value']['subject_details'])
-            subject_detail = '<center>' +
+            var subject_details = JSON.parse(json['value']['subject_details']);
+            var subject_detail = '<center>' +
                         '<table class="table" style="width:60%">' +
                             '<tr>' +
                                 '<th class="col-md-3" style="width:20%"> Subject Code </th>' +
                                 '<th class="col-md-3"> Subject Name </th>' +
                                 '<th class="col-md-3"> Faculty </th>' +
                             '</tr>' ;
-            for(var i = 0; i < subject_details.length; i ++) {
+            for(i = 0; i < subject_details.length; i ++) {
                 subject_detail += '<tr>' +
                         '<td class="col-md-3" style="width:20%">' + subject_details[i]["code"] + '</th>' +
                         '<td class="col-md-3">' + subject_details[i]["subject"] + '</th>' +

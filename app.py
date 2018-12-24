@@ -124,6 +124,17 @@ def process_query():
 
         return json.dumps({'type': 'result', 'value': details})
 
+    elif query_type == "staff_search":
+        cursor.execute("SELECT * FROM staffs_details")
+        results = cursor.fetchall()
+
+        details = []
+
+        for result in results:
+            details.append(result[1] + ' (' + result[4] + ')')
+
+        return json.dumps({'type': 'result', 'value': details})
+
     elif query_type == "department":
         cursor.execute("SELECT * FROM staffs_details WHERE department = %s", (json_data['value'],))
         results = cursor.fetchall()
@@ -182,6 +193,19 @@ def process_query():
         print(details)
         return json.dumps({'type': 'class', 'value': details})
 
+    elif query_type == "staff":
+        ind = json_data['value'].index('(')
+        name, department = json_data['value'][:ind - 1], json_data['value'][ind + 1: -1]
+        cursor.execute("SELECT * FROM staffs_details WHERE staff_name = %s AND department = %s", (name, department))
+        results = cursor.fetchall()
+        details = []
+
+        for result in results:
+            staff = {'id': result[0], 'name': result[1], 'designation': result[2], 'image': result[3]}
+            details.append(staff)
+        return json.dumps({'type': 'department', 'value': details})
+
+
 @app.route('/timetable/<arg>')
 def staff_timetable(arg):
     return render_template("timetable.html", id=arg)
@@ -213,8 +237,8 @@ def load_from_db():
 
         return json.dumps({"value": {"timetable": result1, "subjects": result2, "name": result3}})
     else:
-        data, ind= request.form['data'], request.form['data'].index('-')
-        department_code, class_sec = data[0:ind], data[ind + 1: ]
+        data, ind = request.form['data'], request.form['data'].index('-')
+        department_code, class_sec = data[0: ind], data[ind + 1:]
 
         cursor.execute("SELECT department_name FROM departments WHERE code = %s", (department_code,))
         result = cursor.fetchall()
@@ -224,7 +248,10 @@ def load_from_db():
         cursor.execute("SELECT * FROM class_timetable WHERE department = %s AND class = %s", (department, class_sec))
         result = cursor.fetchall()
 
-        return json.dumps({"value": {"timetable": result[0][3], "details": [result[0][1], result[0][2]], "subject_details": result[0][4]}})
+        return json.dumps({"value": {"timetable": result[0][3],
+                                     "details": [result[0][1], result[0][2]],
+                                     "subject_details": result[0][4]}
+                           })
 
 
 def process_timetable(department, staff_timetable, class_timetable):
@@ -292,7 +319,7 @@ def process_timetable(department, staff_timetable, class_timetable):
                     ind_diff = 5
                 periods[rlo - ind][clo + 1 - ind_diff] = periods[rlo - ind][clo - ind_diff]
 
-        cursor.execute("SELECT * FROM staffs_details WHERE id = %s",(names[sheet_cnt],))
+        cursor.execute("SELECT * FROM staffs_details WHERE id = %s", (names[sheet_cnt],))
         result = cursor.fetchall()
         if len(result) != 0:
             cursor.execute("INSERT INTO free_periods VALUES (%s,%s)", (names[sheet_cnt], json.dumps(periods)))
@@ -329,9 +356,6 @@ def process_timetable(department, staff_timetable, class_timetable):
     book = xlrd.open_workbook(UPLOAD_FOLDER + class_timetable)
 
     cnt = book.nsheets
-    names = book.sheet_names()
-
-
     for sheet_cnt in range(cnt):
 
         sheet = book.sheet_by_index(sheet_cnt)
@@ -402,7 +426,10 @@ def process_timetable(department, staff_timetable, class_timetable):
                         faculty = sheet.cell_value(row, col)
             subject_collection.append({"code": code, "subject": subject, "faculty": faculty})
 
-        cursor.execute("INSERT INTO class_timetable VALUES(%s, %s, %s, %s, %s)" ,(department, str(sheet.name).upper(), advisor_name, json.dumps(periods), json.dumps(subject_collection)))
+        cursor.execute("INSERT INTO class_timetable VALUES(%s, %s, %s, %s, %s)",
+                       (department, str(sheet.name).upper(), advisor_name,
+                        json.dumps(periods), json.dumps(subject_collection))
+                       )
         db.commit()
 
 
