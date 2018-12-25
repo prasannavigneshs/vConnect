@@ -9,7 +9,7 @@ function validateFileExtension() {
         filename = document.getElementById('class_timetable').value;
         extension = filename.substring(filename.lastIndexOf('.') + 1);
         
-        if(extension === "xls" || extension === "xlsx") {
+        if(extension === "xls" || extension === "xlsx" || extension === "") {
             document.getElementById('uploading').style.display = "block";
             return true;
         }
@@ -232,7 +232,6 @@ function loadClassTimetable(id) {
     xhttp.onreadystatechange = function() {
         if(this.readyState ===4 && this.status === 200) {
             var json = JSON.parse(this.responseText);
-            console.log(JSON.parse(json['value']['subject_details']));
             var result = JSON.parse(json['value']['timetable']);
             var detail = '<center>' +
                         '<table class="table" style="margin-top:3%;width:40%">' +
@@ -299,6 +298,163 @@ function loadClassTimetable(id) {
         alert("Oops send");
     }
 
+}
+
+function departmentDetails(value) {
+    var xhttp = new XMLHttpRequest();
+    if(value == 0) {
+        xhttp.onreadystatechange = function() {
+            if(this.readyState ===4 && this.status === 200) {
+                var json = JSON.parse(this.responseText);
+                text = "";
+                for(i = 0; i < json["value"].length; i ++) {
+                    text += '<tr>' +
+                                '<td>' + json["value"][i]["code"] + '</td>' +
+                                '<td>' + json["value"][i]["name"] + '</td>' +
+                                '<td><button class="btn btn-danger btn-sm" onclick="removeData(\'dept\', this)"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button></td>' +
+                             '</tr>';
+                }
+                document.getElementById('department_details').innerHTML = text;
+            }
+        };
+
+        xhttp.open("POST", "/department-details", false);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        try {
+            xhttp.send("type=read");
+        } catch(err) {
+            alert("Oops send");
+        }
+    } else {
+        var code = document.getElementById("departmentcode").value;
+        var name = document.getElementById("departmentname").value;
+        if(code === "" || name === "") {
+            window.alert("Fill all fields");
+            return;
+        }
+        xhttp.onreadystatechange = function() {
+            if(this.readyState ===4 && this.status === 200) {
+                var json = JSON.parse(this.responseText);
+                text = '<tr>' +
+                            '<td>' + json["value"]["code"] + '</td>' +
+                            '<td>' + json["value"]["name"] + '</td>' +
+                            '<td><button class="btn btn-danger btn-sm" onclick="removeData(\'dept\', this)"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button></td>' +
+                        '</tr>';
+
+                document.getElementById('department_details').innerHTML += text;
+            }
+        };
+
+        xhttp.open("POST", "/department-details", false);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        try {
+            xhttp.send("type=write&code=" + code + "&name=" + name);
+        } catch(err) {
+            alert("Oops send");
+        }
+    }
+}
+
+function removeData(type, element) {
+    var xhttp = new XMLHttpRequest();
+    var parentElement = element.parentNode.parentNode;
+    var key = parentElement.childNodes[0].innerHTML;
+    console.log(key);
+    xhttp.onreadystatechange = function() {
+        if(this.readyState ===4 && this.status === 200) {
+            var text = this.responseText;
+            var ultimateParent = parentElement.parentNode;
+            ultimateParent.removeChild(parentElement);
+        }
+    };
+
+    xhttp.open("POST", "/department-details", false);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    try {
+        xhttp.send("type=delete&of=" + type + "&data=" + key);
+    } catch(err) {
+        alert(err);
+    }
+
+}
+
+function staffDetails(value, data) {
+    var xhttp = new XMLHttpRequest();
+    if(value === "load") {
+        xhttp.onreadystatechange = function() {
+            if(this.readyState ===4 && this.status === 200) {
+                var json = JSON.parse(this.responseText);
+                text = "";
+                for(i = 0; i < json["value"].length; i ++) {
+                    text += '<tr>' +
+                                '<td>' + json["value"][i]["id"] + '</td>' +
+                                '<td>' + json["value"][i]["name"] + '</td>' +
+                                '<td>' + json["value"][i]["designation"] + '</td>' +
+                                '<td>'+
+                                    '<button class="btn btn-warning btn-sm" style="margin-right:10px" onclick="staffDetails(\'edit\',this)"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</button>&nbsp' +
+                                    '<button class="btn btn-danger btn-sm" onclick="removeData(\'staff\', this)"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>' +
+                                '</td>' +
+                             '</tr>';
+                }
+                document.getElementById('staff_details').innerHTML = text;
+            }
+        };
+
+        xhttp.open("POST", "/department-details", false);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        try {
+            xhttp.send("type=load&data=" + data);
+        } catch(err) {
+            alert("Oops send");
+        }
+    } else if(value === "edit") {
+        var parentElement = data.parentNode.parentNode;
+        text = '<td>' + parentElement.childNodes[0].innerHTML + '</td>' +
+               '<td> <input type="text" class="form-control" id="name" value="' + parentElement.childNodes[1].innerHTML + '"></td>' +
+               '<td> <select class="form-control" id="designation" required>' +
+                                    '<option value="' + parentElement.childNodes[2].innerHTML + '" selected disabled>' + parentElement.childNodes[2].innerHTML + '</option>' +
+                                    '<option value="Professor & Head">Professor & Head</option>' +
+                                    '<option value="Professor">Professor</option>' +
+                                    '<option value="Associate Professor">Associate Professor</option>' +
+                                    '<option value="Assistant Professor-III">Assistant Professor-III</option>' +
+                                    '<option value="Assistant Professor-II">Assistant Professor-II</option>' +
+                                    '<option value="Assistant Professor-I">Assistant Professor-I</option>' +
+                    '</select>' +
+               '</td>' +
+               '<td>'+
+                   '<button class="btn btn-success btn-sm" style="margin-right:10px" onclick="staffDetails(\'save\',this)"><i class="fa fa-check" aria-hidden="true"></i> Save</button>&nbsp' +
+                   '<button class="btn btn-danger btn-sm" onclick="removeData(\'staff\', this)"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>' +
+               '</td>';
+        parentElement.innerHTML = text;
+
+    } else if(value === "save") {
+        var parentElement = data.parentNode.parentNode;
+        var id = parentElement.childNodes[0].innerHTML;
+        var name = document.getElementById('name').value;
+        var designation = document.getElementById('designation').value;
+
+        xhttp.onreadystatechange = function() {
+            if(this.readyState ===4 && this.status === 200) {
+                text = '<td>' + id + '</td>' +
+                   '<td>' + name + '</td>' +
+                   '<td>' + designation + '</td>' +
+                   '<td>'+
+                       '<button class="btn btn-warning btn-sm" style="margin-right:10px" onclick="staffDetails(\'edit\',this)"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</button>&nbsp' +
+                       '<button class="btn btn-danger btn-sm" onclick="removeData(\'staff\', this)"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>' +
+                   '</td>';
+                parentElement.innerHTML = text;
+            }
+        };
+
+        xhttp.open("POST", "/department-details", false);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        try {
+            xhttp.send("type=edit&data=" + JSON.stringify({"id": id, "name": name, "designation": designation}));
+        } catch(err) {
+            alert("Oops send");
+        }
+
+    }
 }
 
 function getImageName(name) {

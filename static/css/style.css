@@ -216,16 +216,15 @@ h6.description{
     height: 150px;font-family: Arial, Helvetica, sans-serif;
 }
 
+.footer {
+    position: relative;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+}
+
 h5{
     margin-bottom:2px;
     font-weight :bold;
-}
-
-a{
-    color:#88C425;
-}
-
-a:hover{
-    text-decoration:none;
-    color:#519548;
 }

@@ -61,12 +61,14 @@ def upload_timetable():
 
         file = request.files['class_timetable']
         flname = file.filename
-        flname = flname.split('.')
-        file.filename = "class_timetable" + '.' + flname[-1]
+        class_timetable = ""
+        if flname != "":
+            flname = flname.split('.')
+            file.filename = "class_timetable" + '.' + flname[-1]
 
-        class_timetable = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], class_timetable))
-
+            class_timetable = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], class_timetable))
+        print("calss" + class_timetable)
         error_msg = process_timetable(department, staff_timetable, class_timetable)
 
         if error_msg is None:
@@ -190,7 +192,6 @@ def process_query():
 
         for result in results:
             details.append({"class": result[1], "id": department_code + "-" + result[1]})
-        print(details)
         return json.dumps({'type': 'class', 'value': details})
 
     elif query_type == "staff":
@@ -216,7 +217,66 @@ def class_timetable(arg):
     return render_template("class_timetable.html", id=arg)
 
 
-@app.route('/load-from-db', methods=["POST"])
+@app.route('/details')
+def details():
+    return render_template("details.html")
+
+
+@app.route('/department-details', methods=["POST"])
+def department_details():
+    query_type = request.form["type"]
+    mysql_con = mysql.connector.connect(host="localhost", user="root", passwd="", database="vconnect")
+    cursor = mysql_con.cursor()
+
+    if query_type == "read":
+        cursor.execute("SELECT * FROM departments")
+        results = cursor.fetchall()
+
+        data = []
+
+        for result in results:
+            data.append({"code": result[0], "name": result[1]})
+        return json.dumps({"value": data})
+
+    elif query_type == "load":
+        cursor.execute("SELECT * FROM staffs_details WHERE department = %s", (request.form["data"],))
+        results = cursor.fetchall()
+
+        data = []
+
+        for result in results:
+            data.append({"id": result[0], "name": result[1], "designation": result[2]})
+        return json.dumps({"value": data})
+
+    elif query_type == "edit":
+        data = json.loads(request.form["data"])
+        id, name, designation = data["id"], data["name"], data["designation"]
+
+        cursor.execute("UPDATE staffs_details SET staff_name = %s, designation = %s WHERE id = %s", (name, designation, id))
+        mysql_con.commit()
+
+        return "success"
+
+
+    elif query_type == "write":
+        code, name = request.form["code"], request.form["name"]
+        cursor.execute("INSERT INTO departments VALUES(%s, %s)", (code, name))
+        mysql_con.commit()
+
+        return json.dumps({"value": {"code": code, "name": name}})
+
+    elif query_type == "delete":
+        of = request.form["of"]
+        if of == "dept":
+            cursor.execute("DELETE FROM departments WHERE code = %s", (request.form["data"],))
+        else:
+            cursor.execute("DELETE FROM staffs_details WHERE id = %s", (request.form["data"],))
+        mysql_con.commit()
+
+        return "success"
+
+
+@app.route('/load-from-db',methods=["POST"])
 def load_from_db():
     mysql_con = mysql.connector.connect(host="localhost", user="root", passwd="", database="vconnect")
 
@@ -353,6 +413,8 @@ def process_timetable(department, staff_timetable, class_timetable):
         except:
             return "Error in the name of staff - " + name
 
+    if class_timetable == "":
+        return
     book = xlrd.open_workbook(UPLOAD_FOLDER + class_timetable)
 
     cnt = book.nsheets
